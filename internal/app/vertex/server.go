@@ -1,7 +1,9 @@
 package vertex
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/evernetproto/evernet/internal/app/vertex/admin"
 	"github.com/evernetproto/evernet/internal/app/vertex/db"
 	"github.com/evernetproto/evernet/internal/app/vertex/health"
 	"github.com/evernetproto/evernet/internal/pkg/logger"
@@ -48,7 +50,13 @@ func (s *Server) Start() {
 	}
 
 	metaDatabasePath := filepath.Join(s.config.DataPath, MetaDatabaseFile)
-	db.MigrateDatabase(metaDatabasePath, MetaDatabase)
+	database := db.MigrateDatabase(metaDatabasePath, MetaDatabase)
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			zap.L().Fatal("error closing sqlite database", zap.Error(err))
+		}
+	}(database)
 
 	router := gin.Default()
 	router.Use(static.Serve("/", static.LocalFile(s.config.StaticPath, true)))
@@ -61,7 +69,12 @@ func (s *Server) Start() {
 		AllowCredentials: true,
 	}))
 
+	adminDataStore := admin.NewDataStore(database)
+
+	adminManager := admin.NewManager(adminDataStore)
+
 	health.NewHandler(router).Register()
+	admin.NewHandler(router, adminManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))

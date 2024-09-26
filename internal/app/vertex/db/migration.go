@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func MigrateDatabase(path string, databaseName string) {
+func MigrateDatabase(path string, databaseName string) *sql.DB {
 	zap.L().Info("starting database migrations")
 
 	db, err := sql.Open("sqlite3", path)
@@ -18,13 +18,6 @@ func MigrateDatabase(path string, databaseName string) {
 	if err != nil {
 		zap.L().Fatal("failed to open sqlite database", zap.Error(err))
 	}
-
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			zap.L().Fatal("error closing sqlite database", zap.Error(err))
-		}
-	}(db)
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 
@@ -47,4 +40,6 @@ func MigrateDatabase(path string, databaseName string) {
 	}
 
 	zap.L().Info("database migration applied successfully")
+
+	return db
 }
