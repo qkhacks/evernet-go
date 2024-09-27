@@ -6,6 +6,7 @@ import (
 	"github.com/evernetproto/evernet/internal/app/vertex/admin"
 	"github.com/evernetproto/evernet/internal/app/vertex/db"
 	"github.com/evernetproto/evernet/internal/app/vertex/health"
+	"github.com/evernetproto/evernet/internal/app/vertex/node"
 	"github.com/evernetproto/evernet/internal/pkg/logger"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/static"
@@ -72,11 +73,14 @@ func (s *Server) Start() {
 
 	authenticator := admin.NewAuthenticator(s.config.JwtSigningKey, s.config.Vertex)
 	adminDataStore := admin.NewDataStore(database)
+	nodeDataStore := node.NewDataStore(database)
 
 	adminManager := admin.NewManager(adminDataStore, authenticator)
+	nodeManager := node.NewManager(nodeDataStore)
 
 	health.NewHandler(router).Register()
 	admin.NewHandler(router, authenticator, adminManager).Register()
+	node.NewHandler(router, authenticator, nodeManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))
