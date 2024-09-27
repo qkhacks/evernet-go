@@ -66,6 +66,28 @@ func (d *DataStore) FindAll(ctx context.Context, page int64, size int64) ([]*Nod
 	return nodes, nil
 }
 
+func (d *DataStore) FindByIdentifier(ctx context.Context, identifier string) (*Node, error) {
+	var node Node
+	err := d.db.QueryRowContext(ctx,
+		"SELECT identifier, display_name, signing_private_key, signing_public_key, creator, created_at, updated_at FROM nodes WHERE identifier = ?",
+		identifier).
+		Scan(
+			&node.Identifier,
+			&node.DisplayName,
+			&node.SigningPrivateKey,
+			&node.SigningPublicKey,
+			&node.Creator,
+			&node.CreatedAt,
+			&node.UpdatedAt,
+		)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &node, nil
+}
+
 func (d *DataStore) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
 	var count int64
 	err := d.db.QueryRowContext(ctx,

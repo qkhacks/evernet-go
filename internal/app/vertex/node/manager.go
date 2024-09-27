@@ -2,6 +2,8 @@ package node
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/evernetproto/evernet/internal/pkg/keys"
 	"time"
@@ -47,4 +49,14 @@ func (m *Manager) Create(ctx context.Context, request *CreationRequest, creator 
 
 func (m *Manager) List(ctx context.Context, page int64, size int64) ([]*Node, error) {
 	return m.dataStore.FindAll(ctx, page, size)
+}
+
+func (m *Manager) Get(ctx context.Context, identifier string) (*Node, error) {
+	node, err := m.dataStore.FindByIdentifier(ctx, identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("node %s not found", identifier)
+	}
+
+	return node, err
 }
