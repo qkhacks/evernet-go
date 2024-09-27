@@ -109,4 +109,30 @@ func (h *Handler) Register() {
 
 		api.Success(c, http.StatusOK, "admin password changed successfully")
 	})
+
+	h.router.POST("/api/v1/admins", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		authenticatedAdmin, err := h.authenticator.ValidateContext(c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		var request AdditionRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			api.Error(c, http.StatusBadRequest, err)
+			return
+		}
+
+		admin, err := h.manager.Add(ctx, &request, authenticatedAdmin.Identifier)
+
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, admin)
+	})
 }

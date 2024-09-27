@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/sethvargo/go-password/password"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -101,4 +102,49 @@ func (m *Manager) ChangePassword(ctx context.Context, identifier string, request
 	}
 
 	return m.dataStore.UpdatePasswordByIdentifier(ctx, string(hashedPassword), identifier)
+}
+
+func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator string) (*Admin, error) {
+	identifierExists, err := m.dataStore.ExistsByIdentifier(ctx, request.Identifier)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if identifierExists {
+		return nil, fmt.Errorf("admin %s already exists", request.Identifier)
+	}
+
+	newPassword, err := password.Generate(16, 4, 2, false, false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	admin := &Admin{
+		Identifier: request.Identifier,
+		Password:   string(hashedPassword),
+		Creator:    creator,
+		CreatedAt:  time.Now().UnixNano(),
+		UpdatedAt:  time.Now().UnixNano(),
+	}
+
+	return m.dataStore.Insert(ctx, admin)
+}
+
+func (m *Manager) Delete() {
+
+}
+
+func (m *Manager) List() {
+
+}
+
+func (m *Manager) ResetPassword() {
+
 }

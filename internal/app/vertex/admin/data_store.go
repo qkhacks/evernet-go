@@ -71,3 +71,15 @@ func (d *DataStore) Exists(ctx context.Context) (bool, error) {
 
 	return count > 0, nil
 }
+
+func (m *DataStore) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
+	var count int64
+
+	err := m.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM admins WHERE identifier = ?", identifier).Scan(&count)
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
