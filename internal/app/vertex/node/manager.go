@@ -44,3 +44,7 @@ func (m *Manager) Create(ctx context.Context, request *CreationRequest, creator 
 
 	return m.dataStore.Insert(ctx, node)
 }
+
+func (m *Manager) List(ctx context.Context, page int64, size int64) ([]*Node, error) {
+	return m.dataStore.FindAll(ctx, page, size)
+}
