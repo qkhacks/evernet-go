@@ -76,3 +76,18 @@ func (m *Manager) GetToken(ctx context.Context, request *TokenRequest) (*TokenRe
 
 	return &TokenResponse{Token: token}, nil
 }
+
+func (m *Manager) Get(ctx context.Context, identifier string) (*Admin, error) {
+
+	admin, err := m.dataStore.FindByIdentifier(ctx, identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("admin not found")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return admin, nil
+}

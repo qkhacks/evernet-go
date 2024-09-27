@@ -76,7 +76,7 @@ func (s *Server) Start() {
 	adminManager := admin.NewManager(adminDataStore, authenticator)
 
 	health.NewHandler(router).Register()
-	admin.NewHandler(router, adminManager).Register()
+	admin.NewHandler(router, authenticator, adminManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))
