@@ -54,7 +54,26 @@ func (d *DataStore) UpdatePasswordByIdentifier(ctx context.Context, password str
 	}
 
 	if count == 0 {
-		return fmt.Errorf("admin %s not found")
+		return fmt.Errorf("admin %s not found", identifier)
+	}
+
+	return nil
+}
+
+func (d *DataStore) DeleteByIdentifier(ctx context.Context, identifier string) error {
+	result, err := d.db.ExecContext(ctx, "DELETE FROM admins WHERE identifier = ?", identifier)
+
+	if err != nil {
+		return err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return fmt.Errorf("admin %s not found", identifier)
 	}
 
 	return nil
@@ -72,10 +91,10 @@ func (d *DataStore) Exists(ctx context.Context) (bool, error) {
 	return count > 0, nil
 }
 
-func (m *DataStore) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
+func (d *DataStore) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
 	var count int64
 
-	err := m.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM admins WHERE identifier = ?", identifier).Scan(&count)
+	err := d.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM admins WHERE identifier = ?", identifier).Scan(&count)
 
 	if err != nil {
 		return false, err

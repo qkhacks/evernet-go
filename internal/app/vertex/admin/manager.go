@@ -137,8 +137,8 @@ func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator str
 	return m.dataStore.Insert(ctx, admin)
 }
 
-func (m *Manager) Delete() {
-
+func (m *Manager) Delete(ctx context.Context, identifier string) error {
+	return m.dataStore.DeleteByIdentifier(ctx, identifier)
 }
 
 func (m *Manager) List() {
