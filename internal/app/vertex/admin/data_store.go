@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type DataStore struct {
@@ -37,6 +38,26 @@ func (d *DataStore) FindByIdentifier(ctx context.Context, identifier string) (*A
 	}
 
 	return &a, nil
+}
+
+func (d *DataStore) UpdatePasswordByIdentifier(ctx context.Context, password string, identifier string) error {
+	result, err := d.db.ExecContext(ctx, "UPDATE admins SET password = ? WHERE identifier = ?", password, identifier)
+
+	if err != nil {
+		return err
+	}
+
+	count, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return fmt.Errorf("admin %s not found")
+	}
+
+	return nil
 }
 
 func (d *DataStore) Exists(ctx context.Context) (bool, error) {

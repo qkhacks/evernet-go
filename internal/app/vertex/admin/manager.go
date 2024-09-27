@@ -91,3 +91,14 @@ func (m *Manager) Get(ctx context.Context, identifier string) (*Admin, error) {
 
 	return admin, nil
 }
+
+func (m *Manager) ChangePassword(ctx context.Context, identifier string, request *PasswordChangeRequest) error {
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+
+	return m.dataStore.UpdatePasswordByIdentifier(ctx, string(hashedPassword), identifier)
+}
