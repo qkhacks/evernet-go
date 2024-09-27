@@ -88,6 +88,27 @@ func (d *DataStore) FindByIdentifier(ctx context.Context, identifier string) (*N
 	return &node, nil
 }
 
+func (d *DataStore) UpdateDisplayNameByIdentifier(ctx context.Context, displayName string, identifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"UPDATE nodes SET display_name = ? WHERE identifier = ?",
+		displayName, identifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *DataStore) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
 	var count int64
 	err := d.db.QueryRowContext(ctx,

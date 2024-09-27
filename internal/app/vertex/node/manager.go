@@ -60,3 +60,13 @@ func (m *Manager) Get(ctx context.Context, identifier string) (*Node, error) {
 
 	return node, err
 }
+
+func (m *Manager) Update(ctx context.Context, identifier string, request *UpdateRequest) error {
+	err := m.dataStore.UpdateDisplayNameByIdentifier(ctx, request.DisplayName, identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("node %s not found", identifier)
+	}
+
+	return err
+}

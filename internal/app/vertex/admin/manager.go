@@ -101,7 +101,13 @@ func (m *Manager) ChangePassword(ctx context.Context, identifier string, request
 		return err
 	}
 
-	return m.dataStore.UpdatePasswordByIdentifier(ctx, string(hashedPassword), identifier)
+	err = m.dataStore.UpdatePasswordByIdentifier(ctx, string(hashedPassword), identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("admin %s not found", identifier)
+	}
+
+	return err
 }
 
 func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator string) (*AdditionResponse, error) {
@@ -147,7 +153,13 @@ func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator str
 }
 
 func (m *Manager) Delete(ctx context.Context, identifier string) error {
-	return m.dataStore.DeleteByIdentifier(ctx, identifier)
+	err := m.dataStore.DeleteByIdentifier(ctx, identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("admin %s not found", identifier)
+	}
+
+	return err
 }
 
 func (m *Manager) List(ctx context.Context, page int64, size int64) ([]*Admin, error) {

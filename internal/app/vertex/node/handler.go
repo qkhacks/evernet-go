@@ -76,4 +76,30 @@ func (h *Handler) Register() {
 
 		c.JSON(http.StatusOK, node)
 	})
+
+	h.router.PUT("/api/v1/nodes/:identifier", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		_, err := h.authenticator.ValidateContext(c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		var request UpdateRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			api.Error(c, http.StatusBadRequest, err)
+			return
+		}
+
+		identifier := c.Param("identifier")
+		err = h.manager.Update(ctx, identifier, &request)
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		api.Success(c, http.StatusOK, "node updated successfully")
+	})
 }

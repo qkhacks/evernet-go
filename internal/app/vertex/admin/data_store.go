@@ -3,7 +3,6 @@ package admin
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"go.uber.org/zap"
 )
 
@@ -90,7 +89,7 @@ func (d *DataStore) UpdatePasswordByIdentifier(ctx context.Context, password str
 	}
 
 	if count == 0 {
-		return fmt.Errorf("admin %s not found", identifier)
+		return sql.ErrNoRows
 	}
 
 	return nil
@@ -109,7 +108,7 @@ func (d *DataStore) DeleteByIdentifier(ctx context.Context, identifier string) e
 	}
 
 	if count == 0 {
-		return fmt.Errorf("admin %s not found", identifier)
+		return sql.ErrNoRows
 	}
 
 	return nil
