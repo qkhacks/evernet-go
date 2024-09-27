@@ -178,4 +178,25 @@ func (h *Handler) Register() {
 
 		api.Success(c, http.StatusOK, "admin deleted successfully")
 	})
+
+	h.router.GET("/api/v1/admins", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		_, err := h.authenticator.ValidateContext(c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		page, size := api.Page(c)
+
+		admins, err := h.manager.List(ctx, page, size)
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, admins)
+	})
 }

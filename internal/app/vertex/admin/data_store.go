@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go.uber.org/zap"
 )
 
 type DataStore struct {
@@ -38,6 +39,41 @@ func (d *DataStore) FindByIdentifier(ctx context.Context, identifier string) (*A
 	}
 
 	return &a, nil
+}
+
+func (d *DataStore) FindAll(ctx context.Context, page int64, size int64) ([]*Admin, error) {
+	var admins []*Admin
+	rows, err := d.db.QueryContext(ctx,
+		"SELECT identifier, password, creator, created_at, updated_at FROM admins LIMIT ? OFFSET ?",
+		size, page*size)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			zap.L().Error("error while closing rows", zap.Error(err))
+		}
+	}(rows)
+
+	for rows.Next() {
+		var a Admin
+		err = rows.Scan(&a.Identifier, &a.Password, &a.Creator, &a.CreatedAt, &a.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		admins = append(admins, &a)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return admins, nil
 }
 
 func (d *DataStore) UpdatePasswordByIdentifier(ctx context.Context, password string, identifier string) error {

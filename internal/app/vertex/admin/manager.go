@@ -141,8 +141,8 @@ func (m *Manager) Delete(ctx context.Context, identifier string) error {
 	return m.dataStore.DeleteByIdentifier(ctx, identifier)
 }
 
-func (m *Manager) List() {
-
+func (m *Manager) List(ctx context.Context, page int64, size int64) ([]*Admin, error) {
+	return m.dataStore.FindAll(ctx, page, size)
 }
 
 func (m *Manager) ResetPassword() {
