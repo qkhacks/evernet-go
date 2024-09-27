@@ -24,11 +24,12 @@ func NewServer(config *ServerConfig) *Server {
 }
 
 type ServerConfig struct {
-	Host       string
-	Port       string
-	Vertex     string
-	DataPath   string
-	StaticPath string
+	Host          string
+	Port          string
+	Vertex        string
+	DataPath      string
+	StaticPath    string
+	JwtSigningKey string
 }
 
 const (
@@ -69,9 +70,10 @@ func (s *Server) Start() {
 		AllowCredentials: true,
 	}))
 
+	authenticator := admin.NewAuthenticator(s.config.JwtSigningKey, s.config.Vertex)
 	adminDataStore := admin.NewDataStore(database)
 
-	adminManager := admin.NewManager(adminDataStore)
+	adminManager := admin.NewManager(adminDataStore, authenticator)
 
 	health.NewHandler(router).Register()
 	admin.NewHandler(router, adminManager).Register()

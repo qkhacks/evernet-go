@@ -25,6 +25,20 @@ func (d *DataStore) Insert(ctx context.Context, a *Admin) (*Admin, error) {
 	return a, nil
 }
 
+func (d *DataStore) FindByIdentifier(ctx context.Context, identifier string) (*Admin, error) {
+	var a Admin
+
+	err := d.db.QueryRowContext(ctx,
+		"SELECT identifier, password, creator, created_at, updated_at FROM admins WHERE identifier = ?", identifier).
+		Scan(&a.Identifier, &a.Password, &a.Creator, &a.CreatedAt, &a.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
+}
+
 func (d *DataStore) Exists(ctx context.Context) (bool, error) {
 	var count int64
 

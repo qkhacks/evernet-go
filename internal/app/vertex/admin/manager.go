@@ -2,17 +2,23 @@ package admin
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
 type Manager struct {
-	dataStore *DataStore
+	dataStore    *DataStore
+	authenicator *Authenticator
 }
 
-func NewManager(dataStore *DataStore) *Manager {
-	return &Manager{dataStore: dataStore}
+func NewManager(dataStore *DataStore, authenticator *Authenticator) *Manager {
+	return &Manager{
+		dataStore:    dataStore,
+		authenicator: authenticator,
+	}
 }
 
 func (m *Manager) Init(ctx context.Context, request *InitRequest) (*Admin, error) {
@@ -42,4 +48,31 @@ func (m *Manager) Init(ctx context.Context, request *InitRequest) (*Admin, error
 	}
 
 	return m.dataStore.Insert(ctx, admin)
+}
+
+func (m *Manager) GetToken(ctx context.Context, request *TokenRequest) (*TokenResponse, error) {
+
+	admin, err := m.dataStore.FindByIdentifier(ctx, request.Identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("invalid identifier and password combination")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(request.Password))
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid identifier and password combination")
+	}
+
+	token, err := m.authenicator.GenerateToken(admin.Identifier)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &TokenResponse{Token: token}, nil
 }
