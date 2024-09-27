@@ -104,7 +104,7 @@ func (m *Manager) ChangePassword(ctx context.Context, identifier string, request
 	return m.dataStore.UpdatePasswordByIdentifier(ctx, string(hashedPassword), identifier)
 }
 
-func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator string) (*Admin, error) {
+func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator string) (*AdditionResponse, error) {
 	identifierExists, err := m.dataStore.ExistsByIdentifier(ctx, request.Identifier)
 
 	if err != nil {
@@ -134,7 +134,16 @@ func (m *Manager) Add(ctx context.Context, request *AdditionRequest, creator str
 		UpdatedAt:  time.Now().UnixNano(),
 	}
 
-	return m.dataStore.Insert(ctx, admin)
+	admin, err = m.dataStore.Insert(ctx, admin)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &AdditionResponse{
+		Password: newPassword,
+		Admin:    admin,
+	}, nil
 }
 
 func (m *Manager) Delete(ctx context.Context, identifier string) error {
@@ -145,6 +154,21 @@ func (m *Manager) List(ctx context.Context, page int64, size int64) ([]*Admin, e
 	return m.dataStore.FindAll(ctx, page, size)
 }
 
-func (m *Manager) ResetPassword() {
+func (m *Manager) ResetPassword(ctx context.Context, identifier string) (*PasswordResponse, error) {
+	newPassword, err := password.Generate(16, 4, 2, false, false)
+	if err != nil {
+		return nil, err
+	}
 
+	err = m.ChangePassword(ctx, identifier, &PasswordChangeRequest{
+		Password: newPassword,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &PasswordResponse{
+		Password: newPassword,
+	}, nil
 }

@@ -199,4 +199,25 @@ func (h *Handler) Register() {
 
 		c.JSON(http.StatusOK, admins)
 	})
+
+	h.router.PUT("/api/v1/admins/:identifier/password", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		_, err := h.authenticator.ValidateContext(c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		identifier := c.Param("identifier")
+		response, err := h.manager.ResetPassword(ctx, identifier)
+
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, response)
+	})
 }
