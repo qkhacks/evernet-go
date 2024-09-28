@@ -16,3 +16,11 @@ type TokenRequest struct {
 type PasswordChangeRequest struct {
 	Password string `json:"password" binding:"required"`
 }
+
+type DisplayNameUpdateRequest struct {
+	DisplayName string `json:"display_name" binding:"required"`
+}
+
+type TypeUpdateRequest struct {
+	Type string `json:"type" binding:"required"`
+}

@@ -117,3 +117,23 @@ func (m *Manager) ChangePassword(ctx context.Context, identifier string, request
 
 	return err
 }
+
+func (m *Manager) UpdateDisplayName(ctx context.Context, identifier string, request *DisplayNameUpdateRequest, nodeIdentifier string) error {
+	err := m.dataStore.UpdateDisplayNameByIdentifierAndNodeIdentifier(ctx, request.DisplayName, identifier, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("actor %s not found", identifier)
+	}
+
+	return err
+}
+
+func (m *Manager) UpdateType(ctx context.Context, identifier string, request *TypeUpdateRequest, nodeIdentifier string) error {
+	err := m.dataStore.UpdateTypeByIdentifierAndNodeIdentifier(ctx, request.Type, identifier, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("actor %s not found", identifier)
+	}
+
+	return err
+}

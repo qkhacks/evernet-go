@@ -68,6 +68,48 @@ func (d *DataStore) UpdatePasswordByIdentifierAndNodeIdentifier(ctx context.Cont
 	return nil
 }
 
+func (d *DataStore) UpdateDisplayNameByIdentifierAndNodeIdentifier(ctx context.Context, displayName string, identifier string, nodeIdentifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"UPDATE actors SET display_name = ? WHERE identifier = ? AND node_identifier = ?",
+		displayName, identifier, nodeIdentifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (d *DataStore) UpdateTypeByIdentifierAndNodeIdentifier(ctx context.Context, actorType string, identifier string, nodeIdentifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"UPDATE actors SET type = ? WHERE identifier = ? AND node_identifier = ?",
+		actorType, identifier, nodeIdentifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *DataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 
