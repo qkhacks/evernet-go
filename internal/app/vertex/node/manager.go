@@ -70,3 +70,13 @@ func (m *Manager) Update(ctx context.Context, identifier string, request *Update
 
 	return err
 }
+
+func (m *Manager) Delete(ctx context.Context, identifier string) error {
+	err := m.dataStore.DeleteByIdentifier(ctx, identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("node %s not found", identifier)
+	}
+
+	return err
+}

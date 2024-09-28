@@ -109,6 +109,26 @@ func (d *DataStore) UpdateDisplayNameByIdentifier(ctx context.Context, displayNa
 	return nil
 }
 
+func (d *DataStore) DeleteByIdentifier(ctx context.Context, identifier string) error {
+	result, err := d.db.ExecContext(ctx, "DELETE FROM nodes WHERE identifier = ?", identifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *DataStore) ExistsByIdentifier(ctx context.Context, identifier string) (bool, error) {
 	var count int64
 	err := d.db.QueryRowContext(ctx,
