@@ -11,14 +11,14 @@ import (
 )
 
 type Manager struct {
-	dataStore    *DataStore
-	authenicator *Authenticator
+	dataStore     *DataStore
+	authenticator *Authenticator
 }
 
 func NewManager(dataStore *DataStore, authenticator *Authenticator) *Manager {
 	return &Manager{
-		dataStore:    dataStore,
-		authenicator: authenticator,
+		dataStore:     dataStore,
+		authenticator: authenticator,
 	}
 }
 
@@ -69,7 +69,7 @@ func (m *Manager) GetToken(ctx context.Context, request *TokenRequest) (*TokenRe
 		return nil, fmt.Errorf("invalid identifier and password combination")
 	}
 
-	token, err := m.authenicator.GenerateToken(admin.Identifier)
+	token, err := m.authenticator.GenerateToken(admin.Identifier)
 
 	if err != nil {
 		return nil, err

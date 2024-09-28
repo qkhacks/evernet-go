@@ -3,6 +3,7 @@ package vertex
 import (
 	"database/sql"
 	"fmt"
+	"github.com/evernetproto/evernet/internal/app/vertex/actor"
 	"github.com/evernetproto/evernet/internal/app/vertex/admin"
 	"github.com/evernetproto/evernet/internal/app/vertex/db"
 	"github.com/evernetproto/evernet/internal/app/vertex/health"
@@ -71,16 +72,19 @@ func (s *Server) Start() {
 		AllowCredentials: true,
 	}))
 
-	authenticator := admin.NewAuthenticator(s.config.JwtSigningKey, s.config.Vertex)
+	adminAuthenticator := admin.NewAuthenticator(s.config.JwtSigningKey, s.config.Vertex)
 	adminDataStore := admin.NewDataStore(database)
 	nodeDataStore := node.NewDataStore(database)
+	actorDataStore := actor.NewDataStore(database)
 
-	adminManager := admin.NewManager(adminDataStore, authenticator)
+	adminManager := admin.NewManager(adminDataStore, adminAuthenticator)
 	nodeManager := node.NewManager(nodeDataStore)
+	actorManager := actor.NewManager(actorDataStore, nodeManager)
 
 	health.NewHandler(router).Register()
-	admin.NewHandler(router, authenticator, adminManager).Register()
-	node.NewHandler(router, authenticator, nodeManager).Register()
+	admin.NewHandler(router, adminAuthenticator, adminManager).Register()
+	node.NewHandler(router, adminAuthenticator, nodeManager).Register()
+	actor.NewHandler(router, actorManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))
