@@ -12,3 +12,7 @@ type TokenRequest struct {
 	Password          string `json:"password" binding:"required"`
 	TargetNodeAddress string `json:"target_node_address"`
 }
+
+type PasswordChangeRequest struct {
+	Password string `json:"password" binding:"required"`
+}

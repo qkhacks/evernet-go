@@ -98,4 +98,42 @@ func (h *Handler) Register() {
 
 		c.JSON(http.StatusOK, actor)
 	})
+
+	h.router.PUT("/api/v1/nodes/:nodeIdentifier/actors/current/password", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		authenticatedActor, err := h.authenticator.ValidateContext(ctx, c)
+
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		if !authenticatedActor.IsLocal {
+			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
+			return
+		}
+
+		nodeIdentifier := c.Param("nodeIdentifier")
+
+		if nodeIdentifier != authenticatedActor.TargetNodeIdentifier {
+			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
+		}
+
+		var request PasswordChangeRequest
+		if err := c.ShouldBindJSON(&request); err != nil {
+			api.Error(c, http.StatusBadRequest, err)
+			return
+		}
+
+		err = h.manager.ChangePassword(ctx, authenticatedActor.Identifier, &request, nodeIdentifier)
+
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		api.Success(c, http.StatusOK, "password changed successfully")
+	})
 }

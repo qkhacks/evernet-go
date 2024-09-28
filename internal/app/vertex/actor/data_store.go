@@ -47,6 +47,27 @@ func (d *DataStore) FindByIdentifierAndNodeIdentifier(ctx context.Context, ident
 	return &actor, nil
 }
 
+func (d *DataStore) UpdatePasswordByIdentifierAndNodeIdentifier(ctx context.Context, password string, identifier string, nodeIdentifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"UPDATE actors SET password = ? WHERE identifier = ? AND node_identifier = ?",
+		password, identifier, nodeIdentifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *DataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 

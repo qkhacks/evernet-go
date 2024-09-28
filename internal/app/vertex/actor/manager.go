@@ -101,3 +101,19 @@ func (m *Manager) Get(ctx context.Context, identifier string, nodeIdentifier str
 
 	return actor, nil
 }
+
+func (m *Manager) ChangePassword(ctx context.Context, identifier string, request *PasswordChangeRequest, nodeIdentifier string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+
+	err = m.dataStore.UpdatePasswordByIdentifierAndNodeIdentifier(ctx, string(hashedPassword), identifier, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("actor %s not found", identifier)
+	}
+
+	return err
+}
