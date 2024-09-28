@@ -73,13 +73,15 @@ func (s *Server) Start() {
 	}))
 
 	adminAuthenticator := admin.NewAuthenticator(s.config.JwtSigningKey, s.config.Vertex)
+	actorAuthenticator := actor.NewAuthenticator(s.config.Vertex)
+
 	adminDataStore := admin.NewDataStore(database)
 	nodeDataStore := node.NewDataStore(database)
 	actorDataStore := actor.NewDataStore(database)
 
 	adminManager := admin.NewManager(adminDataStore, adminAuthenticator)
 	nodeManager := node.NewManager(nodeDataStore)
-	actorManager := actor.NewManager(actorDataStore, nodeManager)
+	actorManager := actor.NewManager(actorDataStore, nodeManager, actorAuthenticator)
 
 	health.NewHandler(router).Register()
 	admin.NewHandler(router, adminAuthenticator, adminManager).Register()

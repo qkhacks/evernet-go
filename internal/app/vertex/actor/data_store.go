@@ -32,6 +32,21 @@ func (d *DataStore) Insert(ctx context.Context, actor *Actor) (*Actor, error) {
 	return actor, nil
 }
 
+func (d *DataStore) FindByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (*Actor, error) {
+	var actor Actor
+
+	err := d.db.QueryRowContext(ctx,
+		"SELECT identifier, display_name, type, password, node_identifier, creator, created_at, updated_at FROM actors WHERE identifier = ? AND node_identifier = ?",
+		identifier, nodeIdentifier).
+		Scan(&actor.Identifier, &actor.DisplayName, &actor.Type, &actor.Password, &actor.NodeIdentifier, &actor.Creator, &actor.CreatedAt, &actor.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &actor, nil
+}
+
 func (d *DataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 

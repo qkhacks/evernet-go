@@ -2,6 +2,8 @@ package actor
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/evernetproto/evernet/internal/app/vertex/node"
 	"golang.org/x/crypto/bcrypt"
@@ -9,12 +11,13 @@ import (
 )
 
 type Manager struct {
-	dataStore   *DataStore
-	nodeManager *node.Manager
+	dataStore     *DataStore
+	nodeManager   *node.Manager
+	authenticator *Authenticator
 }
 
-func NewManager(dataStore *DataStore, nodeManager *node.Manager) *Manager {
-	return &Manager{dataStore: dataStore, nodeManager: nodeManager}
+func NewManager(dataStore *DataStore, nodeManager *node.Manager, authenticator *Authenticator) *Manager {
+	return &Manager{dataStore: dataStore, nodeManager: nodeManager, authenticator: authenticator}
 }
 
 func (m *Manager) SignUp(ctx context.Context, nodeIdentifier string, request *SignUpRequest) (*Actor, error) {
@@ -52,4 +55,35 @@ func (m *Manager) SignUp(ctx context.Context, nodeIdentifier string, request *Si
 	}
 
 	return m.dataStore.Insert(ctx, actor)
+}
+
+func (m *Manager) GetToken(ctx context.Context, nodeIdentifier string, request *TokenRequest) (*TokenResponse, error) {
+	nodeData, err := m.nodeManager.Get(ctx, nodeIdentifier)
+	if err != nil {
+		return nil, err
+	}
+
+	actor, err := m.dataStore.FindByIdentifierAndNodeIdentifier(ctx, request.Identifier, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("invalid identifier and password combination")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(actor.Password), []byte(request.Password))
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid username and password combination")
+	}
+
+	token, err := m.authenticator.GenerateToken(actor.Identifier, nodeData, request.TargetNodeAddress)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &TokenResponse{Token: token}, nil
 }
