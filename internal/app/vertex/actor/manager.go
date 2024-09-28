@@ -87,3 +87,17 @@ func (m *Manager) GetToken(ctx context.Context, nodeIdentifier string, request *
 
 	return &TokenResponse{Token: token}, nil
 }
+
+func (m *Manager) Get(ctx context.Context, identifier string, nodeIdentifier string) (*Actor, error) {
+	actor, err := m.dataStore.FindByIdentifierAndNodeIdentifier(ctx, identifier, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("actor %s not found", identifier)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return actor, nil
+}

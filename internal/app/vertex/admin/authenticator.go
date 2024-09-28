@@ -2,9 +2,9 @@ package admin
 
 import (
 	"fmt"
+	"github.com/evernetproto/evernet/internal/pkg/api"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"strings"
 	"time"
 )
 
@@ -44,7 +44,7 @@ func (a *Authenticator) GenerateToken(identifier string) (string, error) {
 }
 
 func (a *Authenticator) ValidateContext(c *gin.Context) (*Admin, error) {
-	tokenType, token, err := a.extractToken(c)
+	tokenType, token, err := api.ExtractToken(c)
 
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (a *Authenticator) ValidateContext(c *gin.Context) (*Admin, error) {
 func (a *Authenticator) validateBearerToken(tokenString string) (*Admin, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return a.jwtSigningKey, nil
-	})
+	}, jwt.WithAudience(a.vertex), jwt.WithIssuer(a.vertex))
 
 	if err != nil {
 		return nil, err
@@ -102,20 +102,4 @@ func (a *Authenticator) validateBearerToken(tokenString string) (*Admin, error) 
 	} else {
 		return nil, fmt.Errorf("invalid access token")
 	}
-}
-
-func (a *Authenticator) extractToken(c *gin.Context) (string, string, error) {
-	authorizationHeader := c.GetHeader("Authorization")
-
-	if len(authorizationHeader) == 0 {
-		return "", "", fmt.Errorf("authorization header is not set")
-	}
-
-	components := strings.Split(authorizationHeader, " ")
-
-	if len(components) != 2 {
-		return "", "", fmt.Errorf("invalid authorization header")
-	}
-
-	return components[0], components[1], nil
 }

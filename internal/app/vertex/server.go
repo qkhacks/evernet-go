@@ -73,7 +73,6 @@ func (s *Server) Start() {
 	}))
 
 	adminAuthenticator := admin.NewAuthenticator(s.config.JwtSigningKey, s.config.Vertex)
-	actorAuthenticator := actor.NewAuthenticator(s.config.Vertex)
 
 	adminDataStore := admin.NewDataStore(database)
 	nodeDataStore := node.NewDataStore(database)
@@ -81,12 +80,15 @@ func (s *Server) Start() {
 
 	adminManager := admin.NewManager(adminDataStore, adminAuthenticator)
 	nodeManager := node.NewManager(nodeDataStore)
+	remoteNodeManager := node.NewRemoteManager()
+
+	actorAuthenticator := actor.NewAuthenticator(s.config.Vertex, nodeManager, remoteNodeManager)
 	actorManager := actor.NewManager(actorDataStore, nodeManager, actorAuthenticator)
 
 	health.NewHandler(router).Register()
 	admin.NewHandler(router, adminAuthenticator, adminManager).Register()
 	node.NewHandler(router, adminAuthenticator, nodeManager).Register()
-	actor.NewHandler(router, actorManager).Register()
+	actor.NewHandler(router, actorAuthenticator, actorManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))

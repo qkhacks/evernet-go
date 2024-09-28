@@ -23,3 +23,7 @@ func (n *Node) GetAddress(vertex string) string {
 func (n *Node) GetSigningPrivateKey() (ed25519.PrivateKey, error) {
 	return keys.ConvertED25519PrivateKeyFromString(n.SigningPrivateKey)
 }
+
+func (n *Node) GetSigningPublicKey() (ed25519.PublicKey, error) {
+	return keys.ConvertED25519PublicKeyFromString(n.SigningPublicKey)
+}
