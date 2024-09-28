@@ -110,6 +110,27 @@ func (d *DataStore) UpdateTypeByIdentifierAndNodeIdentifier(ctx context.Context,
 	return nil
 }
 
+func (d *DataStore) DeleteByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"DELETE FROM actors WHERE identifier = ? AND node_identifier = ?",
+		identifier, nodeIdentifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *DataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 

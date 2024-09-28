@@ -137,3 +137,13 @@ func (m *Manager) UpdateType(ctx context.Context, identifier string, request *Ty
 
 	return err
 }
+
+func (m *Manager) Delete(ctx context.Context, identifier string, nodeIdentifier string) error {
+	err := m.dataStore.DeleteByIdentifierAndNodeIdentifier(ctx, identifier, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("actor %s not found", identifier)
+	}
+
+	return err
+}
