@@ -109,6 +109,27 @@ func (d *DataStore) UpdateDisplayNameByIdentifier(ctx context.Context, displayNa
 	return nil
 }
 
+func (d *DataStore) UpdateSigningPrivateKeyAndSigningPublicKeyByIdentifier(ctx context.Context, signingPrivateKey string, signingPublicKey string, identifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"UPDATE nodes SET signing_private_key = ?, signing_public_key = ? WHERE identifier = ?",
+		signingPrivateKey, signingPublicKey, identifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *DataStore) DeleteByIdentifier(ctx context.Context, identifier string) error {
 	result, err := d.db.ExecContext(ctx, "DELETE FROM nodes WHERE identifier = ?", identifier)
 

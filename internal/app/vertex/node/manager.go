@@ -80,3 +80,22 @@ func (m *Manager) Delete(ctx context.Context, identifier string) error {
 
 	return err
 }
+
+func (m *Manager) ResetSigningKeys(ctx context.Context, identifier string) (*SigningKeyResetResponse, error) {
+	publicKey, privateKey, err := keys.GenerateED25519KeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	signingPublicKeyString := keys.ConvertED25519PublicKeyToString(publicKey)
+	err = m.dataStore.UpdateSigningPrivateKeyAndSigningPublicKeyByIdentifier(ctx,
+		keys.ConvertED25519PrivateKeyToString(privateKey),
+		signingPublicKeyString,
+		identifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("node %s not found", identifier)
+	}
+
+	return &SigningKeyResetResponse{SigningPublicKey: signingPublicKeyString}, err
+}
