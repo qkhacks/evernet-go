@@ -117,4 +117,26 @@ func (h *InboxHandler) Register() {
 
 		api.Success(c, http.StatusOK, "inbox updated successfully")
 	})
+
+	h.router.DELETE("/api/v1/messaging/inboxes/:inboxIdentifier", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		authenticatedActor, err := h.authenticator.ValidateContext(ctx, c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		identifier := c.Param("inboxIdentifier")
+
+		err = h.manager.Delete(ctx, identifier, authenticatedActor.Address, authenticatedActor.TargetNodeIdentifier)
+
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		api.Success(c, http.StatusOK, "inbox deleted successfully")
+	})
 }

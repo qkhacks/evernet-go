@@ -66,3 +66,13 @@ func (m *InboxManager) Update(ctx context.Context, identifier string, request *I
 
 	return err
 }
+
+func (m *InboxManager) Delete(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) error {
+	err := m.dataStore.DeleteByIdentifierAndActorAddressAndNodeIdentifier(ctx, identifier, actorAddress, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("inbox %s not found", identifier)
+	}
+
+	return err
+}
