@@ -67,7 +67,7 @@ func (h *Handler) Register() {
 		c.JSON(http.StatusOK, token)
 	})
 
-	h.router.GET("/api/v1/nodes/:nodeIdentifier/actors/current", func(c *gin.Context) {
+	h.router.GET("/api/v1/actors/current", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c, 5*time.Second)
 		defer cancel()
 
@@ -83,13 +83,7 @@ func (h *Handler) Register() {
 			return
 		}
 
-		nodeIdentifier := c.Param("nodeIdentifier")
-
-		if nodeIdentifier != authenticatedActor.TargetNodeIdentifier {
-			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
-		}
-
-		actor, err := h.manager.Get(ctx, authenticatedActor.Identifier, nodeIdentifier)
+		actor, err := h.manager.Get(ctx, authenticatedActor.Identifier, authenticatedActor.TargetNodeIdentifier)
 
 		if err != nil {
 			api.Error(c, http.StatusInternalServerError, err)
@@ -99,7 +93,7 @@ func (h *Handler) Register() {
 		c.JSON(http.StatusOK, actor)
 	})
 
-	h.router.PUT("/api/v1/nodes/:nodeIdentifier/actors/current/password", func(c *gin.Context) {
+	h.router.PUT("/api/v1/actors/current/password", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c, 5*time.Second)
 		defer cancel()
 
@@ -115,19 +109,13 @@ func (h *Handler) Register() {
 			return
 		}
 
-		nodeIdentifier := c.Param("nodeIdentifier")
-
-		if nodeIdentifier != authenticatedActor.TargetNodeIdentifier {
-			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
-		}
-
 		var request PasswordChangeRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			api.Error(c, http.StatusBadRequest, err)
 			return
 		}
 
-		err = h.manager.ChangePassword(ctx, authenticatedActor.Identifier, &request, nodeIdentifier)
+		err = h.manager.ChangePassword(ctx, authenticatedActor.Identifier, &request, authenticatedActor.TargetNodeIdentifier)
 
 		if err != nil {
 			api.Error(c, http.StatusInternalServerError, err)
@@ -137,7 +125,7 @@ func (h *Handler) Register() {
 		api.Success(c, http.StatusOK, "password changed successfully")
 	})
 
-	h.router.PUT("/api/v1/nodes/:nodeIdentifier/actors/current/display-name", func(c *gin.Context) {
+	h.router.PUT("/api/v1/actors/current/display-name", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c, 5*time.Second)
 		defer cancel()
 
@@ -152,19 +140,13 @@ func (h *Handler) Register() {
 			return
 		}
 
-		nodeIdentifier := c.Param("nodeIdentifier")
-
-		if nodeIdentifier != authenticatedActor.TargetNodeIdentifier {
-			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
-		}
-
 		var request DisplayNameUpdateRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			api.Error(c, http.StatusBadRequest, err)
 			return
 		}
 
-		err = h.manager.UpdateDisplayName(ctx, authenticatedActor.Identifier, &request, nodeIdentifier)
+		err = h.manager.UpdateDisplayName(ctx, authenticatedActor.Identifier, &request, authenticatedActor.TargetNodeIdentifier)
 
 		if err != nil {
 			api.Error(c, http.StatusInternalServerError, err)
@@ -174,7 +156,7 @@ func (h *Handler) Register() {
 		api.Success(c, http.StatusOK, "display name updated successfully")
 	})
 
-	h.router.PUT("/api/v1/nodes/:nodeIdentifier/actors/current/type", func(c *gin.Context) {
+	h.router.PUT("/api/v1/actors/current/type", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c, 5*time.Second)
 		defer cancel()
 
@@ -189,19 +171,13 @@ func (h *Handler) Register() {
 			return
 		}
 
-		nodeIdentifier := c.Param("nodeIdentifier")
-
-		if nodeIdentifier != authenticatedActor.TargetNodeIdentifier {
-			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
-		}
-
 		var request TypeUpdateRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			api.Error(c, http.StatusBadRequest, err)
 			return
 		}
 
-		err = h.manager.UpdateType(ctx, authenticatedActor.Identifier, &request, nodeIdentifier)
+		err = h.manager.UpdateType(ctx, authenticatedActor.Identifier, &request, authenticatedActor.TargetNodeIdentifier)
 
 		if err != nil {
 			api.Error(c, http.StatusInternalServerError, err)
@@ -211,7 +187,7 @@ func (h *Handler) Register() {
 		api.Success(c, http.StatusOK, "actor type updated successfully")
 	})
 
-	h.router.DELETE("/api/v1/nodes/:nodeIdentifier/actors/current", func(c *gin.Context) {
+	h.router.DELETE("/api/v1/actors/current", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c, 5*time.Second)
 		defer cancel()
 
@@ -226,13 +202,7 @@ func (h *Handler) Register() {
 			return
 		}
 
-		nodeIdentifier := c.Param("nodeIdentifier")
-
-		if nodeIdentifier != authenticatedActor.TargetNodeIdentifier {
-			api.ErrorMessage(c, http.StatusForbidden, "not allowed")
-		}
-
-		err = h.manager.Delete(ctx, authenticatedActor.Identifier, nodeIdentifier)
+		err = h.manager.Delete(ctx, authenticatedActor.Identifier, authenticatedActor.TargetNodeIdentifier)
 
 		if err != nil {
 			api.Error(c, http.StatusInternalServerError, err)

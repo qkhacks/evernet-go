@@ -13,6 +13,7 @@ import (
 
 type AuthenticatedActor struct {
 	Identifier           string
+	Address              string
 	SourceNodeIdentifier string
 	SourceVertex         string
 	SourceNodeAddress    string
@@ -205,6 +206,7 @@ func (a *Authenticator) validateBearerToken(ctx context.Context, tokenString str
 
 		return &AuthenticatedActor{
 			Identifier:           identifierString,
+			Address:              fmt.Sprintf("%s/%s/%s", sourceVertex, sourceNodeIdentifier, identifierString),
 			SourceNodeIdentifier: sourceNodeIdentifier,
 			SourceVertex:         sourceVertex,
 			SourceNodeAddress:    sourceNodeAddress,

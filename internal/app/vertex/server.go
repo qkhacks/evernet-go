@@ -7,6 +7,7 @@ import (
 	"github.com/evernetproto/evernet/internal/app/vertex/admin"
 	"github.com/evernetproto/evernet/internal/app/vertex/db"
 	"github.com/evernetproto/evernet/internal/app/vertex/health"
+	"github.com/evernetproto/evernet/internal/app/vertex/messaging"
 	"github.com/evernetproto/evernet/internal/app/vertex/node"
 	"github.com/evernetproto/evernet/internal/pkg/logger"
 	"github.com/gin-contrib/cors"
@@ -77,6 +78,7 @@ func (s *Server) Start() {
 	adminDataStore := admin.NewDataStore(database)
 	nodeDataStore := node.NewDataStore(database)
 	actorDataStore := actor.NewDataStore(database)
+	inboxDataStore := messaging.NewInboxDataStore(database)
 
 	adminManager := admin.NewManager(adminDataStore, adminAuthenticator)
 	nodeManager := node.NewManager(nodeDataStore)
@@ -84,11 +86,13 @@ func (s *Server) Start() {
 
 	actorAuthenticator := actor.NewAuthenticator(s.config.Vertex, nodeManager, remoteNodeManager)
 	actorManager := actor.NewManager(actorDataStore, nodeManager, actorAuthenticator)
+	inboxManager := messaging.NewInboxManager(inboxDataStore)
 
 	health.NewHandler(router).Register()
 	admin.NewHandler(router, adminAuthenticator, adminManager).Register()
 	node.NewHandler(router, adminAuthenticator, nodeManager).Register()
 	actor.NewHandler(router, actorAuthenticator, actorManager).Register()
+	messaging.NewInboxHandler(router, actorAuthenticator, inboxManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))
