@@ -2,6 +2,8 @@ package messaging
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -39,4 +41,18 @@ func (m *InboxManager) Create(ctx context.Context, request *InboxCreationRequest
 
 func (m *InboxManager) List(ctx context.Context, actorAddress string, nodeIdentifier string, page int64, size int64) ([]*Inbox, error) {
 	return m.dataStore.FindByActorAddressAndNodeIdentifier(ctx, actorAddress, nodeIdentifier, page, size)
+}
+
+func (m *InboxManager) Get(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) (*Inbox, error) {
+	inbox, err := m.dataStore.FindByIdentifierAndActorAddressAndNodeIdentifier(ctx, identifier, actorAddress, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("inbox %s not found", identifier)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return inbox, nil
 }

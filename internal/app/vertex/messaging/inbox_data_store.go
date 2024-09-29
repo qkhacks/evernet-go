@@ -65,6 +65,25 @@ func (d *InboxDataStore) FindByActorAddressAndNodeIdentifier(ctx context.Context
 	return inboxes, nil
 }
 
+func (d *InboxDataStore) FindByIdentifierAndActorAddressAndNodeIdentifier(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) (*Inbox, error) {
+	var inbox Inbox
+	err := d.db.QueryRowContext(ctx,
+		"SELECT identifier, display_name, node_identifier, actor_address, created_at, updated_at FROM inboxes WHERE identifier = ? AND actor_address = ? AND node_identifier = ?",
+		identifier, actorAddress, nodeIdentifier).Scan(
+		&inbox.Identifier,
+		&inbox.DisplayName,
+		&inbox.NodeIdentifier,
+		&inbox.ActorAddress,
+		&inbox.CreatedAt,
+		&inbox.UpdatedAt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &inbox, nil
+}
+
 func (d *InboxDataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 

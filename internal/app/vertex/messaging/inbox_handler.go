@@ -68,4 +68,26 @@ func (h *InboxHandler) Register() {
 
 		c.JSON(http.StatusOK, inboxes)
 	})
+
+	h.router.GET("/api/v1/messaging/inboxes/:inboxIdentifier", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		authenticatedActor, err := h.authenticator.ValidateContext(ctx, c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		identifier := c.Param("inboxIdentifier")
+
+		inbox, err := h.manager.Get(ctx, identifier, authenticatedActor.Address, authenticatedActor.TargetNodeIdentifier)
+
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, inbox)
+	})
 }
