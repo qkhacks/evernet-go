@@ -84,6 +84,27 @@ func (d *InboxDataStore) FindByIdentifierAndActorAddressAndNodeIdentifier(ctx co
 	return &inbox, nil
 }
 
+func (d *InboxDataStore) UpdateDisplayNameByIdentifierAndActorAddressAndNodeIdentifier(ctx context.Context, displayName string, identifier string, actorAddress string, nodeIdentifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"UPDATE inboxes SET display_name = ? WHERE identifier = ? AND actor_address = ? AND node_identifier = ?",
+		displayName, identifier, actorAddress, nodeIdentifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *InboxDataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 

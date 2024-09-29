@@ -56,3 +56,13 @@ func (m *InboxManager) Get(ctx context.Context, identifier string, actorAddress 
 
 	return inbox, nil
 }
+
+func (m *InboxManager) Update(ctx context.Context, identifier string, request *InboxUpdateRequest, actorAddress string, nodeIdentifier string) error {
+	err := m.dataStore.UpdateDisplayNameByIdentifierAndActorAddressAndNodeIdentifier(ctx, request.DisplayName, identifier, actorAddress, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("inbox %s not found", identifier)
+	}
+
+	return err
+}
