@@ -46,4 +46,26 @@ func (h *InboxHandler) Register() {
 
 		c.JSON(http.StatusCreated, inbox)
 	})
+
+	h.router.GET("/api/v1/messaging/inboxes", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		authenticatedActor, err := h.authenticator.ValidateContext(ctx, c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		page, size := api.Page(c)
+
+		inboxes, err := h.manager.List(ctx, authenticatedActor.Address, authenticatedActor.TargetNodeIdentifier, page, size)
+
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, inboxes)
+	})
 }

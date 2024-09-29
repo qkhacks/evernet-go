@@ -36,3 +36,7 @@ func (m *InboxManager) Create(ctx context.Context, request *InboxCreationRequest
 
 	return m.dataStore.Insert(ctx, inbox)
 }
+
+func (m *InboxManager) List(ctx context.Context, actorAddress string, nodeIdentifier string, page int64, size int64) ([]*Inbox, error) {
+	return m.dataStore.FindByActorAddressAndNodeIdentifier(ctx, actorAddress, nodeIdentifier, page, size)
+}
