@@ -52,3 +52,14 @@ func (m *OutboxManager) Get(ctx context.Context, identifier string, actorAddress
 
 	return outbox, err
 }
+
+func (m *OutboxManager) Update(ctx context.Context, identifier string, request *OutboxUpdateRequest, actorAddress string, nodeIdentifier string) error {
+	err := m.dataStore.UpdateDisplayNameByIdentifierAndActorAddressAndNodeIdentifier(ctx,
+		request.DisplayName, identifier, actorAddress, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("outbox %s not found", identifier)
+	}
+
+	return err
+}
