@@ -79,6 +79,7 @@ func (s *Server) Start() {
 	nodeDataStore := node.NewDataStore(database)
 	actorDataStore := actor.NewDataStore(database)
 	inboxDataStore := messaging.NewInboxDataStore(database)
+	outboxDataStore := messaging.NewOutboxDataStore(database)
 
 	adminManager := admin.NewManager(adminDataStore, adminAuthenticator)
 	nodeManager := node.NewManager(nodeDataStore)
@@ -87,12 +88,14 @@ func (s *Server) Start() {
 	actorAuthenticator := actor.NewAuthenticator(s.config.Vertex, nodeManager, remoteNodeManager)
 	actorManager := actor.NewManager(actorDataStore, nodeManager, actorAuthenticator)
 	inboxManager := messaging.NewInboxManager(inboxDataStore)
+	outboxManager := messaging.NewOutboxManager(outboxDataStore)
 
 	health.NewHandler(router).Register()
 	admin.NewHandler(router, adminAuthenticator, adminManager).Register()
 	node.NewHandler(router, adminAuthenticator, nodeManager).Register()
 	actor.NewHandler(router, actorAuthenticator, actorManager).Register()
 	messaging.NewInboxHandler(router, actorAuthenticator, inboxManager).Register()
+	messaging.NewOutboxHandler(router, actorAuthenticator, outboxManager).Register()
 
 	zap.L().Info("starting vertex", zap.String("host", s.config.Host), zap.String("port", s.config.Port))
 	err = router.Run(fmt.Sprintf("%s:%s", s.config.Host, s.config.Port))
