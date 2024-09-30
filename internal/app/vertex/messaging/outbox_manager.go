@@ -36,3 +36,7 @@ func (m *OutboxManager) Create(ctx context.Context, request *OutboxCreationReque
 
 	return m.dataStore.Insert(ctx, outbox)
 }
+
+func (m *OutboxManager) List(ctx context.Context, actorAddress string, nodeIdentifier string, page int64, size int64) ([]*Outbox, error) {
+	return m.dataStore.FindByActorAddressAndNodeIdentifier(ctx, actorAddress, nodeIdentifier, page, size)
+}
