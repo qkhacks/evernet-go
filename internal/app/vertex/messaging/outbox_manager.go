@@ -2,6 +2,8 @@ package messaging
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -39,4 +41,14 @@ func (m *OutboxManager) Create(ctx context.Context, request *OutboxCreationReque
 
 func (m *OutboxManager) List(ctx context.Context, actorAddress string, nodeIdentifier string, page int64, size int64) ([]*Outbox, error) {
 	return m.dataStore.FindByActorAddressAndNodeIdentifier(ctx, actorAddress, nodeIdentifier, page, size)
+}
+
+func (m *OutboxManager) Get(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) (*Outbox, error) {
+	outbox, err := m.dataStore.FindByIdentifierAndActorAddressAndNodeIdentifier(ctx, identifier, actorAddress, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("outbox %s not found", identifier)
+	}
+
+	return outbox, err
 }

@@ -59,6 +59,27 @@ func (d *OutboxDataStore) FindByActorAddressAndNodeIdentifier(ctx context.Contex
 	return outboxes, nil
 }
 
+func (d *OutboxDataStore) FindByIdentifierAndActorAddressAndNodeIdentifier(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) (*Outbox, error) {
+	var outbox Outbox
+
+	err := d.db.QueryRowContext(ctx,
+		"SELECT identifier, display_name, node_identifier, actor_address, created_at, updated_at FROM outboxes WHERE identifier = ? AND actor_address = ? AND node_identifier = ?", identifier, actorAddress, nodeIdentifier).
+		Scan(
+			&outbox.Identifier,
+			&outbox.DisplayName,
+			&outbox.NodeIdentifier,
+			&outbox.ActorAddress,
+			&outbox.CreatedAt,
+			&outbox.UpdatedAt,
+		)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &outbox, nil
+}
+
 func (d *OutboxDataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 
