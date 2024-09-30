@@ -115,4 +115,25 @@ func (h *OutboxHandler) Register() {
 
 		api.Success(c, http.StatusOK, "outbox updated successfully")
 	})
+
+	h.router.DELETE("/api/v1/messaging/outboxes/:outboxIdentifier", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c, 5*time.Second)
+		defer cancel()
+
+		authenticatedActor, err := h.authenticator.ValidateContext(ctx, c)
+		if err != nil {
+			api.Error(c, http.StatusUnauthorized, err)
+			return
+		}
+
+		outboxIdentifier := c.Param("outboxIdentifier")
+
+		err = h.manager.Delete(ctx, outboxIdentifier, authenticatedActor.Address, authenticatedActor.TargetNodeIdentifier)
+		if err != nil {
+			api.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+
+		api.Success(c, http.StatusOK, "outbox deleted successfully")
+	})
 }

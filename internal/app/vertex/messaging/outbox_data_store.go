@@ -100,6 +100,27 @@ func (d *OutboxDataStore) UpdateDisplayNameByIdentifierAndActorAddressAndNodeIde
 	return nil
 }
 
+func (d *OutboxDataStore) DeleteByIdentifierAndActorAddressAndNodeIdentifier(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) error {
+	result, err := d.db.ExecContext(ctx,
+		"DELETE FROM outboxes WHERE identifier = ? AND actor_address = ? AND node_identifier = ?",
+		identifier, actorAddress, nodeIdentifier)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (d *OutboxDataStore) ExistsByIdentifierAndNodeIdentifier(ctx context.Context, identifier string, nodeIdentifier string) (bool, error) {
 	var count int64
 

@@ -63,3 +63,13 @@ func (m *OutboxManager) Update(ctx context.Context, identifier string, request *
 
 	return err
 }
+
+func (m *OutboxManager) Delete(ctx context.Context, identifier string, actorAddress string, nodeIdentifier string) error {
+	err := m.dataStore.DeleteByIdentifierAndActorAddressAndNodeIdentifier(ctx, identifier, actorAddress, nodeIdentifier)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("outbox %s not found", identifier)
+	}
+
+	return err
+}
